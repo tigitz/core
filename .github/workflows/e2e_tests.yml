@@ -51,8 +51,6 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix:
-        dbms: ['postgresql', 'mysql',  'sqlite']
     name: E2E tests ${{ matrix.dbms }}
     steps:
       - uses: actions/checkout@v2
