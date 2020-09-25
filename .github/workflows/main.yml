@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        operating-system: [ubuntu-latest, windows-latest, macos-latest]
+        php-versions: ['7.2', '7.3', '7.4', '8.0']
+    name: Unit tests on PHP ${{ matrix.php-versions }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: shivammathur/setup-php@2.5.0
+        with:
+          # Setup PHP version.
+          php-version: ${{ matrix.php-versions }}
+          # Setup PHP extensions.
+          extensions: mbstring, json, pdo
+          # Setup code coverage driver.
+          coverage: xdebug
+      - name: run PHP Unit
+        run: ./vendor/bin/phpunit
