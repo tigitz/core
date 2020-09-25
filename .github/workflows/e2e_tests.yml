@@ -113,8 +113,8 @@ jobs:
         run: vendor/bin/behat --tags=javascript --format=progress
 
       - name: Upload test artifacts
-          if: always()
-          uses: actions/upload-artifact@v1
-          with:
-            name: e2e-js-tests
-            path: var/log/behat-reports
+        if: always()
+        uses: actions/upload-artifact@v1
+        with:
+          name: e2e-js-tests
+          path: var/log/behat-reports
