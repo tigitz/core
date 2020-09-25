@@ -36,7 +36,7 @@ jobs:
 
       - name: Setup Bolt
         run: |
-          ./bin/console bolt:setup
+          make db-reset-without-images
           ./bin/console server:start 127.0.0.1:8088
 
       - name: e2e API tests
