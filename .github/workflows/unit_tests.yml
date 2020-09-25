@@ -9,12 +9,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-versions: ['7.2', '7.3',  '8.0']
+        php-versions: ['7.3',  '8.0']
         coverage: ['']
+        dependencies: ['']
         include:
           - php-versions: '7.4'
             coverage: 'with coverage'
-    name: Unit tests on PHP ${{ matrix.php-versions }} ${{ matrix.coverage}}
+          - php-versions: '7.2'
+            dependencies: 'with lowest dependencies'
+
+    name: PHP ${{ matrix.php-versions }} Unit tests ${{ matrix.coverage}}${{ matrix.dependecies}}
     steps:
       - uses: actions/checkout@v2
 
@@ -36,13 +40,18 @@ jobs:
           restore-keys: ${{ runner.os }}-composer-
 
       - name: Install dependencies
+        if: "matrix.dependencies == ''"
         run: composer update --prefer-dist --no-progress
+
+      - name: Install dependencies
+        if: "matrix.dependencies != 'with lowest dependencies'"
+        run: composer update --prefer-dist --no-progress --prefer-lowest
 
       - name: Setup problem matchers for PHPUnit
         run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
       - name: run PHP Unit
-        if: "matrix.coverage != 'with coverage'"
+        if: "matrix.coverage == ''"
         run: ./vendor/bin/phpunit
 
       - name: run PHP Unit with coverage
