@@ -14,7 +14,7 @@ jobs:
         include:
           - php-versions: '7.4'
             coverage: 'yes'
-    name: Unit tests on PHP ${{ matrix.php-versions }}
+    name: Unit tests on PHP ${{ matrix.php-versions }} ${{ matrix.dependencies == 'yes' ? 'with coverage' }}
     steps:
       - uses: actions/checkout@v2
 
@@ -46,7 +46,7 @@ jobs:
         run: ./vendor/bin/phpunit
 
       - name: run PHP Unit with coverage
-        if: "matrix.dependencies == 'yes'"
+        if: "matrix.coverage == 'yes'"
         run: ./vendor/bin/phpunit --coverage-xml=coverage-xml
 
       - uses: codecov/codecov-action@v1
