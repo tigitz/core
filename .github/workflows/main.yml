@@ -2,14 +2,12 @@ name: CI
 
 on:
   push:
-  pull_request:
 
 jobs:
   unit-tests:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        operating-system: [ubuntu-latest, windows-latest, macos-latest]
         php-versions: ['7.2', '7.3', '7.4', '8.0']
     name: Unit tests on PHP ${{ matrix.php-versions }}
     steps:
@@ -17,11 +15,24 @@ jobs:
 
       - uses: shivammathur/setup-php@2.5.0
         with:
-          # Setup PHP version.
           php-version: ${{ matrix.php-versions }}
-          # Setup PHP extensions.
           extensions: mbstring, json, pdo
-          # Setup code coverage driver.
           coverage: xdebug
+          tools: composer
+
+      - name: Get composer cache directory
+        id: composercache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.composercache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-progress
+
       - name: run PHP Unit
         run: ./vendor/bin/phpunit
