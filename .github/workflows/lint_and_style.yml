@@ -1,0 +1,81 @@
+name: Unit tests
+
+on:
+  push:
+
+jobs:
+  lint-and-style:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    continue-on-error: true
+    name: Check lint and style
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: shivammathur/setup-php@2.5.0
+        with:
+          php-version: '7.4'
+          extensions: mbstring, json, pdo
+          tools: composer, flex
+
+      - name: Get composer cache directory
+        id: composercache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.composercache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-progress
+
+      - name: this checks that the source code follows the Bolt Code Syntax rules
+        run: |
+          ./vendor/bin/ecs check src
+          ./vendor/bin/phpstan analyse -c phpstan.neon src
+
+      - name: this checks that the YAML config files contain no syntax errors
+        run: ./bin/console lint:yaml config
+
+      - name: this checks that the Twig template files contain no syntax errors
+        run: ./bin/console lint:twig templates
+
+      - name: this checks that the XLIFF translations contain no syntax errors
+        run: ./bin/console lint:xliff translations
+
+      - name: this checks that the application doesn't use dependencies with known security vulnerabilities
+        run: ./bin/console security:check
+
+      - name: this checks that the composer.json and composer.lock files are valid
+        run: composer validate --strict # temporarily disabled due to bug in api platform 2.4.0-beta.2
+
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '12'
+
+      - name: Get node.js cache directory
+        id: nodecache
+        run: echo "::set-output name=dir::$(npm config get cache)" # Use $(yarn cache dir) for yarn
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.nodecache.outputs.dir }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }} # Use '**/yarn.lock' for yarn
+          restore-keys: ${{ runner.os }}-node-
+
+      - name: run EsLint on Javascript files
+        run: npm install
+
+      - name: run EsLint on Javascript files
+        run: npm run lint
+
+      - name: run StyleLint on SCSS
+        run: npm run stylelint
+
+#      - name: this checks that Doctrine's mapping configurations are valid
+#        run: ./bin/console doctrine:schema:validate --skip-sync -vvv --no-interaction
