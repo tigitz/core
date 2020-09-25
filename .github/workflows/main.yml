@@ -47,9 +47,10 @@ jobs:
 
       - name: run PHP Unit with coverage
         if: "matrix.coverage == 'with coverage'"
-        run: ./vendor/bin/phpunit --coverage-xml=coverage-xml
+        run: ./vendor/bin/phpunit --coverage-xml=coverage.xml
 
       - uses: codecov/codecov-action@v1
+        if: "matrix.coverage == 'with coverage'"
         with:
           file: ./coverage.xml
           fail_ci_if_error: true
