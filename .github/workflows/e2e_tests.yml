@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-    name: E2E tests
+    name: E2E API tests
     steps:
       - uses: actions/checkout@v2
 
@@ -51,7 +51,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-    name: E2E tests ${{ matrix.dbms }}
+    name: E2E JS tests
     steps:
       - uses: actions/checkout@v2
 
