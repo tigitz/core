@@ -56,5 +56,5 @@ jobs:
       - uses: codecov/codecov-action@v1
         if: "matrix.coverage == 'with coverage'"
         with:
-          file: .build/coverage/coverage.xml
+          file: .build/coverage/index.xml
           fail_ci_if_error: true
