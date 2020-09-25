@@ -8,9 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix:
-        dbms: ['postgresql', 'mysql',  'sqlite']
-    name: E2E tests ${{ matrix.dbms }}
+    name: E2E tests
     steps:
       - uses: actions/checkout@v2
 
@@ -40,7 +38,7 @@ jobs:
           ./bin/console server:start 127.0.0.1:8088
 
       - name: e2e API tests
-        run: vendor/bin/behat --tags=api --format=progress -strict -vvv --no-interaction || vendor/bin/behat --tags=api --format=progress -strict -vvv --no-interaction --rerun
+        run: vendor/bin/behat --tags=api --format=progress --strict -vvv --no-interaction || vendor/bin/behat --tags=api --format=progress --strict -vvv --no-interaction --rerun
 
       - name: Upload test artifacts
         if: always()
