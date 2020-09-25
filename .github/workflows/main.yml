@@ -47,7 +47,7 @@ jobs:
 
       - name: run PHP Unit with coverage
         if: "matrix.coverage == 'with coverage'"
-        run: ./vendor/bin/phpunit --coverage-xml=coverage.xml
+        run: ./vendor/bin/phpunit
 
       - name: run PHP Unit with coverage
         if: "matrix.coverage == 'with coverage'"
