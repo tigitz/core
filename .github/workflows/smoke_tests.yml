@@ -4,12 +4,12 @@ on:
   push:
 
 jobs:
-  smoke-tests:
+  php-smoke-tests:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
     continue-on-error: true
-    name: 'Smoke Tests: lint, style, static analysis'
+    name: 'PHP Smoke Tests: lint, style, static analysis'
     steps:
       - uses: actions/checkout@v2
 
@@ -53,6 +53,15 @@ jobs:
 
       - name: this checks that the composer.json and composer.lock files are valid
         run: composer validate --strict # temporarily disabled due to bug in api platform 2.4.0-beta.2
+
+  js-smoke-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    continue-on-error: true
+    name: 'JS Smoke Tests: lint, style, static analysis'
+    steps:
+      - uses: actions/checkout@v2
 
       - uses: actions/setup-node@v1
         with:
