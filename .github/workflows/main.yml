@@ -11,9 +11,9 @@ jobs:
       matrix:
         php-versions: ['7.2', '7.3', '7.4']
         coverage: ['no']
-          include:
-            - php: '7.4'
-              coverage: 'yes'
+        include:
+          - php: '7.4'
+            coverage: 'yes'
     name: Unit tests on PHP ${{ matrix.php-versions }}
     steps:
       - uses: actions/checkout@v2
