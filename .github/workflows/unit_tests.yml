@@ -1,0 +1,64 @@
+name: Unit tests
+
+on:
+  push:
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php-versions: ['7.2', '7.3',  '8.0']
+        include:
+          - php-versions: '7.4'
+            coverage: 'with coverage'
+          - php-versions: '7.2'
+            dependencies: 'with lowest dependencies'
+
+    name: PHP ${{ matrix.php-versions }} Unit tests ${{ matrix.coverage}}${{ matrix.dependencies}}
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: shivammathur/setup-php@2.5.0
+        with:
+          php-version: ${{ matrix.php-versions }}
+          extensions: mbstring, json, pdo
+          tools: composer, flex
+      - uses: nanasess/setup-chromedriver@master
+      - uses: djp3/puppeteer-headful@master
+
+      - name: Get composer cache directory
+        id: composercache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.composercache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        if: "matrix.dependencies == ''"
+        run: composer update --prefer-dist --no-progress
+
+      - name: Install dependencies
+        if: "matrix.dependencies == 'with lowest dependencies'"
+        run: composer update --prefer-dist --no-progress --prefer-lowest
+
+      - name: Setup problem matchers for PHPUnit
+        run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
+
+      - name: run PHP Unit
+        if: "matrix.coverage == ''"
+        run: ./vendor/bin/phpunit
+
+      - name: run PHP Unit with coverage
+        if: "matrix.coverage == 'with coverage'"
+        run: ./vendor/bin/phpunit --coverage-clover=coverage.xml
+
+      - uses: codecov/codecov-action@v1
+        if: "matrix.coverage == 'with coverage'"
+        with:
+          fail_ci_if_error: true

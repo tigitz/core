@@ -1,0 +1,118 @@
+name: E2E Tests
+
+on:
+  push:
+
+jobs:
+  e2e-api-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    name: E2E API tests
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: shivammathur/setup-php@2.5.0
+        with:
+          php-version: '7.4'
+          extensions: mbstring, json, pdo
+          tools: composer, flex
+
+      - name: Get composer cache directory
+        id: composercache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.composercache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-progress
+
+      - name: Setup Bolt
+        run: |
+          make db-reset-without-images
+          ./bin/console server:start 127.0.0.1:8088
+
+      - name: e2e API tests
+        run: vendor/bin/behat --tags=api --format=progress --strict -vvv --no-interaction || vendor/bin/behat --tags=api --format=progress --strict -vvv --no-interaction --rerun
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v1
+        with:
+          name: e2e-api-tests
+          path: var/log/behat-reports
+
+  e2e-js-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    name: E2E JS tests
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: shivammathur/setup-php@2.5.0
+        with:
+          php-version: '7.4'
+          extensions: mbstring, json, pdo
+          tools: composer, flex
+
+      - name: Get composer cache directory
+        id: composercache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.composercache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-progress
+
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '12'
+
+      - name: Get node.js cache directory
+        id: nodecache
+        run: echo "::set-output name=dir::$(npm config get cache)"
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.nodecache.outputs.dir }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: ${{ runner.os }}-node-
+
+      - name: Setup Bolt
+        run: |
+          make db-reset-without-images
+          ./bin/console server:start 127.0.0.1:8088
+
+      - name: Install javascript deps
+        run: npm install
+
+      - name: build front-end assets
+        run: npm run build
+
+      - name: Run Chrome headless
+        run: |
+          google-chrome-stable --enable-automation --disable-background-networking --no-default-browser-check --no-first-run --disable-popup-blocking --disable-default-apps --allow-insecure-localhost --disable-translate --disable-extensions --no-sandbox --enable-features=Metal --headless --remote-debugging-port=9222 --window-size=2880,1800 --proxy-server='direct://' --proxy-bypass-list='*' http://127.0.0.1 > /dev/null 2>&1 &
+          sleep 15
+          curl -s -o /dev/null -I -w "%{http_code}" http://127.0.0.1:8088/json/version
+
+      - name: run javascript e2e tests
+        run: vendor/bin/behat --tags=javascript --format=progress
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v1
+        with:
+          name: e2e-js-tests
+          path: var/log/behat-reports
