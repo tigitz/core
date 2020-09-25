@@ -1,15 +1,15 @@
-name: Unit tests
+name: Smoke tests
 
 on:
   push:
 
 jobs:
-  lint-and-style:
+  smoke-tests:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
     continue-on-error: true
-    name: Check lint and style
+    name: 'Smoke Tests: lint, style, static analysis'
     steps:
       - uses: actions/checkout@v2
 
@@ -33,10 +33,11 @@ jobs:
       - name: Install dependencies
         run: composer update --prefer-dist --no-progress
 
-      - name: this checks that the source code follows the Bolt Code Syntax rules
-        run: |
-          ./vendor/bin/ecs check src
-          ./vendor/bin/phpstan analyse -c phpstan.neon src
+      - name: Check Bolt Code Syntax rules
+        run: ./vendor/bin/ecs check src
+
+      - name: PHPStan static analysis
+        run: ./vendor/bin/phpstan analyse -c phpstan.neon src
 
       - name: this checks that the YAML config files contain no syntax errors
         run: ./bin/console lint:yaml config
@@ -59,13 +60,13 @@ jobs:
 
       - name: Get node.js cache directory
         id: nodecache
-        run: echo "::set-output name=dir::$(npm config get cache)" # Use $(yarn cache dir) for yarn
+        run: echo "::set-output name=dir::$(npm config get cache)"
 
       - name: Cache dependencies
         uses: actions/cache@v2
         with:
           path: ${{ steps.nodecache.outputs.dir }}
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }} # Use '**/yarn.lock' for yarn
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: ${{ runner.os }}-node-
 
       - name: run EsLint on Javascript files
