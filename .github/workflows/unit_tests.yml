@@ -44,7 +44,7 @@ jobs:
         run: composer update --prefer-dist --no-progress
 
       - name: Install dependencies
-        if: "matrix.dependencies != 'with lowest dependencies'"
+        if: "matrix.dependencies == 'with lowest dependencies'"
         run: composer update --prefer-dist --no-progress --prefer-lowest
 
       - name: Setup problem matchers for PHPUnit
