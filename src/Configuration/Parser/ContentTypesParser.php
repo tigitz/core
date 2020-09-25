@@ -285,7 +285,7 @@ class ContentTypesParser extends BaseParser
         if ($field['type'] === 'image' || $field['type'] === 'imagelist') {
             if (empty($field['extensions'])) {
                 $extensions = new Collection(['gif', 'jpg', 'jpeg', 'png', 'svg', 'avif', 'webp']);
-                $field['extensions'] = $extensions->intersect($acceptFileTypes)->toArray();
+                $field['extensions'] = array_values($extensions->intersect($acceptFileTypes)->all());
             }
         }
 
