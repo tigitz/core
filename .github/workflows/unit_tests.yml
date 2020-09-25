@@ -9,16 +9,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-versions: ['7.3',  '8.0']
-        coverage: ['']
-        dependencies: ['']
+        php-versions: ['7.2', '7.3',  '8.0']
         include:
           - php-versions: '7.4'
             coverage: 'with coverage'
           - php-versions: '7.2'
             dependencies: 'with lowest dependencies'
 
-    name: PHP ${{ matrix.php-versions }} Unit tests ${{ matrix.coverage}}${{ matrix.dependecies}}
+    name: PHP ${{ matrix.php-versions }} Unit tests ${{ matrix.coverage}}${{ matrix.dependencies}}
     steps:
       - uses: actions/checkout@v2
 
@@ -27,6 +25,8 @@ jobs:
           php-version: ${{ matrix.php-versions }}
           extensions: mbstring, json, pdo
           tools: composer, flex
+      - uses: nanasess/setup-chromedriver@master
+      - uses: djp3/puppeteer-headful@master
 
       - name: Get composer cache directory
         id: composercache
