@@ -10,11 +10,11 @@ jobs:
       fail-fast: false
       matrix:
         php-versions: ['7.2', '7.3', '7.4']
-        coverage: ['no']
+        coverage: ['']
         include:
           - php-versions: '7.4'
-            coverage: 'yes'
-    name: Unit tests on PHP ${{ matrix.php-versions }} ${{ matrix.dependencies == 'yes' ? 'with coverage' }}
+            coverage: 'with coverage'
+    name: Unit tests on PHP ${{ matrix.php-versions }} ${{ matrix.coverage}}
     steps:
       - uses: actions/checkout@v2
 
@@ -42,13 +42,14 @@ jobs:
         run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
       - name: run PHP Unit
-        if: "matrix.coverage == 'no'"
+        if: "matrix.coverage != 'with coverage'"
         run: ./vendor/bin/phpunit
 
       - name: run PHP Unit with coverage
-        if: "matrix.coverage == 'yes'"
+        if: "matrix.coverage == 'with coverage'"
         run: ./vendor/bin/phpunit --coverage-xml=coverage-xml
 
       - uses: codecov/codecov-action@v1
         with:
           file: ./coverage.xml
+          fail_ci_if_error: true
